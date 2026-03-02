@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Maximum Average Subarray I – Visualizer</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f5f7fa;
+        padding: 20px;
+      }
+      h1 {
+        margin-bottom: 5px;
+      }
+      input {
+        width: 400px;
+        padding: 8px;
+        font-size: 16px;
+      }
+      button {
+        padding: 8px 14px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-left: 8px;
+      }
+      #chart {
+        display: flex;
+        align-items: flex-end;
+        height: 300px;
+        margin-top: 30px;
+        border-left: 2px solid #333;
+        border-bottom: 2px solid #333;
+        padding: 10px;
+        gap: 6px;
+      }
+      .bar {
+        width: 30px;
+        background: steelblue;
+        position: relative;
+        opacity: 0.7;
+      }
+      .bar.in-window {
+        background: orange;
+        opacity: 1;
+      }
+      .bar span {
+        position: absolute;
+        bottom: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 12px;
+      }
+      #window {
+        position: absolute;
+        border: 2px dashed #ff9800;
+        pointer-events: none;
+        transition: left 0.3s;
+        z-index: 2;
+      }
+      #info {
+        margin-top: 20px;
+        font-size: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Maximum Average Subarray I – Animation</h1>
+    <p>Enter array (comma separated) and window size k:</p>
+    <input id="input" value="1,12,-5,-6,50,3" />
+    <input id="k" type="number" value="4" min="1" style="width:60px;" />
+    <button onclick="start()">Start Animation</button>
+    <button onclick="step()">Step</button>
+    <div id="chartWrapper" style="position: relative">
+      <div id="chart"></div>
+      <div id="window"></div>
+    </div>
+    <div id="info"></div>
+    <script>
+      let nums = [], k = 4, windowStart = 0, windowSum = 0, maxSum = null, stepNum = 0, running = false;
+      function start() {
+        nums = document.getElementById("input").value.split(",").map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+        k = parseInt(document.getElementById("k").value);
+        if (nums.length < k || k < 1) {
+          alert("Array must have at least k elements and k >= 1");
+          return;
+        }
+        windowStart = 0;
+        windowSum = nums.slice(0, k).reduce((a, b) => a + b, 0);
+        maxSum = windowSum;
+        stepNum = 0;
+        running = true;
+        draw();
+        updateInfo();
+      }
+      function step() {
+        if (!running) return;
+        if (windowStart + k >= nums.length) {
+          running = false;
+          updateInfo(true);
+          return;
+        }
+        // Slide window
+        windowSum = windowSum - nums[windowStart] + nums[windowStart + k];
+        windowStart++;
+        if (windowSum > maxSum) maxSum = windowSum;
+        stepNum++;
+        draw();
+        updateInfo();
+      }
+      function draw() {
+        const chart = document.getElementById("chart");
+        chart.innerHTML = "";
+        nums.forEach((n, i) => {
+          const bar = document.createElement("div");
+          bar.className = "bar";
+          if (i >= windowStart && i < windowStart + k) bar.classList.add("in-window");
+          bar.style.height = (Math.max(n, 0) * 5 + 60) + "px";
+          const label = document.createElement("span");
+          label.textContent = n;
+          bar.appendChild(label);
+          chart.appendChild(bar);
+        });
+        // Draw window highlight
+        const windowDiv = document.getElementById("window");
+        const barWidth = 36;
+        windowDiv.style.display = "block";
+        windowDiv.style.left = (windowStart * barWidth + 22) + "px";
+        windowDiv.style.bottom = "12px";
+        windowDiv.style.width = (k * barWidth) + "px";
+        windowDiv.style.height = "320px";
+      }
+      function updateInfo(done) {
+        let info = `Window [${windowStart}..${windowStart + k - 1}]<br>Current window sum = ${windowSum}<br>Max sum so far = ${maxSum}<br>Current average = ${(windowSum / k).toFixed(2)}`;
+        if (done) info += '<br><strong>✅ Done! Max average = ' + (maxSum / k).toFixed(2) + '</strong>';
+        document.getElementById("info").innerHTML = info;
+      }
+    </script>
+  </body>
+</html>
